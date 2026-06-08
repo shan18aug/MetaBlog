@@ -1,10 +1,34 @@
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import authService from "@/services/appwrite/auth.service";
+import { loginSuccess, logoutSuccess } from "@/features/authSlice";
+import { Outlet } from "react-router-dom";
+
 function App() {
+  const dispatch = useDispatch();
+  /*  
+  Session Persistence (VERY IMPORTANT)
+    When app loads,it checks existing session,fetch current user and update redux. 
+  */
+  useEffect(() => {
+    authService
+      .getCurrentUser()
+      .then((userData) => {
+        if (userData) {
+          dispatch(loginSuccess(userData));
+        } else {
+          dispatch(logoutSuccess());
+        }
+      })
+      .catch(() => {
+        dispatch(logoutSuccess());
+      });
+  }, [dispatch]);
+
   return (
-    <>
-      <h1 className="bg-blue-300 text-2xl text-gray-600">
-        A Blog with Appwrite
-      </h1>
-    </>
+    <main>
+      <Outlet />
+    </main>
   );
 }
 
