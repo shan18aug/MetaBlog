@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import authService from "@/services/appwrite/auth.service";
 import Input from "@/components/forms/Input";
+import { loginSuccess } from "@/features/authSlice";
 
 function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const { register, handleSubmit } = useForm();
 
   const create = async (data) => {
     setError("");
-
     try {
       const session = await authService.createAccount(data);
+
       if (session) {
+        const currentUser = await authService.getCurrentUser();
+
+        if (currentUser) {
+          const userData = {
+            $id: currentUser.$id,
+            name: currentUser.name,
+            email: currentUser.email,
+          };
+
+          dispatch(loginSuccess(userData));
+        }
+
         navigate("/");
       }
     } catch (error) {
+      console.error(error);
       setError(error.message);
     }
   };
